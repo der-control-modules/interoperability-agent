@@ -4,7 +4,7 @@ import json
 import os
 
 from collections import defaultdict
-#%%
+ 
 
  
 def number_of_data_type(data):
@@ -25,8 +25,8 @@ def number_of_data_type(data):
         intervals.append((interval, last_data_type))
         print(f'data type {last_data_type} number : {interval}')
     return intervals
+ 
 
-#%%
 def normalize_description(description, item):
     #NOTE: not every item has 'category' 
     description = description.replace("Set ", "") # This is for schedule
@@ -77,7 +77,6 @@ def get_mesa_map(data):
 
 
 
-#%% 
 def parse_reference_map_entry(entry):
     """understand reference map and get the mapped_points if key are not in mesa config"""
     if (not entry) or (not isinstance(entry,str)):
@@ -106,6 +105,7 @@ def parse_reference_map_entry(entry):
             mapped_points.append(i)
     return mapped_points
 
+
 def get_filtered_maps(mesa_map, reference_map):
     '''get filtered map then fill non-exist maps by directly using reference map'''
     filtered_map = {}
@@ -123,7 +123,6 @@ def get_filtered_maps(mesa_map, reference_map):
                 if 'IEEE 1815.2' in reference_map:
                     entry = reference_map[reference_map['IEC 61850-7-420'].str.contains(ref, na=False)]['IEEE 1815.2'].iloc[0]
                     mapped_points = parse_reference_map_entry(entry)
-                    print(f'point is {ref},searched enetry is {entry},mapped point is {mapped_points}')
                     if mapped_points:
                         filtered_map[ref] = {'mapped_points': mapped_points}
                     else:
@@ -134,9 +133,6 @@ def get_filtered_maps(mesa_map, reference_map):
 
 
 
- 
- 
-# %%
 def merge_keys(data):
     '''merge keys that has same mappoed points'''
     processed_keys = set()
@@ -153,8 +149,8 @@ def merge_keys(data):
                 similar_keys.append(other_key)
                 processed_keys.add(other_key)
 
-        result[tuple(similar_keys)] = {'mapped_points': current_mapped_points}
-        processed_keys.add(key)
+        # result[''.join(tuple(similar_keys))] = {'mapped_points': current_mapped_points}
+        # processed_keys.add(key)
         
         # type
         if len(similar_keys)>1:
@@ -169,7 +165,7 @@ def merge_keys(data):
         
         write_flag = any('O' in point for point in current_mapped_points)
         
-        result[tuple(similar_keys)] = {
+        result[",".join(tuple(similar_keys))] = {
             'mapped_points': current_mapped_points,
             'transform_type': type_str,
             'writable': write_flag
@@ -188,8 +184,9 @@ with open(os.path.join(current_folder,'mesa_mapping.config'), 'r') as f:
 # get reference_map
 reference_map = pd.read_excel(os.path.join(current_folder,r'ieee1547_mappings.xlsx'),sheet_name='Sheet1')
 
-
 mesa_map = get_mesa_map(data)
 filtered_map,notexist_keys,in_mesa_keys = get_filtered_maps(mesa_map,reference_map)
 final_result = merge_keys(filtered_map)
  
+final_result
+# %%
