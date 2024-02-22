@@ -5,16 +5,8 @@ import os
 
 from collections import defaultdict
 #%%
-# get data 
-current_folder = os.getcwd()
-with open(os.path.join(current_folder,'mesa_mapping.config'), 'r') as f:
-    data = json.load(f)
+
  
-# get reference_map
-reference_map = pd.read_excel(os.path.join(current_folder,r'ieee1547_mappings.xlsx'),sheet_name='Sheet1')
-
-
-#%%
 def number_of_data_type(data):
     '''by checking the number of each type, we want to make sure type I equal or large than type O'''
     intervals = []
@@ -83,7 +75,7 @@ def get_mesa_map(data):
     
     return dict(result)
 
-mesa_map = get_mesa_map(data)
+
 
 #%% 
 def parse_reference_map_entry(entry):
@@ -141,10 +133,63 @@ def get_filtered_maps(mesa_map, reference_map):
     return filtered_map, notexist_keys,in_mesa_keys
 
 
-filtered_map,notexist_keys,in_mesa_keys = get_filtered_maps(mesa_map,reference_map)
 
-            
+ 
+ 
 # %%
-with open('ieee_1815_2_map.txt','w') as json_file:
-    json.dump(filtered_map,json_file,indent=4)
+def merge_keys(data):
+    '''merge keys that has same mappoed points'''
+    processed_keys = set()
+    result = {}
+    for key, value in data.items():
+         
+        if key in processed_keys:
+            continue
+
+        current_mapped_points = value['mapped_points']
+        similar_keys = [key]
+        for other_key, other_value in data.items():
+            if other_key != key and other_value['mapped_points'] == current_mapped_points:
+                similar_keys.append(other_key)
+                processed_keys.add(other_key)
+
+        result[tuple(similar_keys)] = {'mapped_points': current_mapped_points}
+        processed_keys.add(key)
+        
+        # type
+        if len(similar_keys)>1:
+            if len(current_mapped_points)>1:
+                type_str ='map_list'
+            else:
+                type_str='unknown'
+        elif len(current_mapped_points)>1:
+            type_str ='broadcast'
+        else:
+            type_str = 'one_to_one'
+        
+        write_flag = any('O' in point for point in current_mapped_points)
+        
+        result[tuple(similar_keys)] = {
+            'mapped_points': current_mapped_points,
+            'transform_type': type_str,
+            'writable': write_flag
+        }
+        processed_keys.add(key)
+    return result
+
+
+
 # %%
+# get data 
+current_folder = os.getcwd()
+with open(os.path.join(current_folder,'mesa_mapping.config'), 'r') as f:
+    data = json.load(f)
+ 
+# get reference_map
+reference_map = pd.read_excel(os.path.join(current_folder,r'ieee1547_mappings.xlsx'),sheet_name='Sheet1')
+
+
+mesa_map = get_mesa_map(data)
+filtered_map,notexist_keys,in_mesa_keys = get_filtered_maps(mesa_map,reference_map)
+final_result = merge_keys(filtered_map)
+ 
