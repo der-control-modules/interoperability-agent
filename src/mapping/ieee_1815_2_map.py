@@ -2,10 +2,10 @@
 import pandas as pd 
 import json 
 import os
-
+import re 
 from collections import defaultdict
  
-
+#%%
  
 def number_of_data_type(data):
     '''by checking the number of each type, we want to make sure type I equal or large than type O'''
@@ -74,35 +74,70 @@ def get_mesa_map(data):
                 result[key]['mapped_points'].extend(mapped_points)
     
     return dict(result)
+ 
+ #%%
+def extract_and_combine(s):
+    parts = s.split(':')
+    combined =[]
 
 
+    if len(parts) != 2:
+        
+        sub_parts = parts[0].split('-')
+        if len(sub_parts)==1:
+            return parts
+        else:
+            digits_start_end = [int(re.findall(r'\d+', sub_parts[0])[0]),int(re.findall(r'\d+', sub_parts[-1])[0])]
+            non_digits = ''.join(set( (re.findall(r'\D+', sub_parts[0]))))
+            combined.append([(non_digits+str(x)) for x in range(digits_start_end[0],digits_start_end[-1]+1)])
+        print(f'in extract, return {combined}')
+         
+    else:
+        left, right = parts
+        left_parts = left.split(',')
+        right_parts = right.split(',')
 
+        
+        if len(left_parts) == len(right_parts):
+            for i in range(len(left_parts)):
+                sub_left_parts = left_parts[i].split('-')
+                sub_right_parts = right_parts[i].split('-')
+                if len(sub_left_parts)==1: 
+                    combined.append(list(zip(sub_left_parts,sub_right_parts)))
+                else:
+                    digits_O_start_end = [int(re.findall(r'\d+', sub_left_parts[0])[0]),int(re.findall(r'\d+', sub_left_parts[-1])[0])]
+                    digits_I_start_end = [int(re.findall(r'\d+', sub_right_parts[0])[0]),int(re.findall(r'\d+', sub_right_parts[-1])[0])]
+                    combined.append([("AO"+str(x), "AI"+str(y)) for x, y in zip(range(digits_O_start_end[0], digits_O_start_end[-1]+1), range(digits_I_start_end[0], digits_I_start_end[1]+1))])
+        else:
+            print(left_parts,right_parts)           
+            for i in range(max(len(left_parts),len(right_parts))):
+                sub_left_parts = left_parts[i].split('-') if i < len(left_parts) else ''
+                sub_right_parts =  right_parts[i].split('-') if i < len(right_parts) else ''
+                if max(len(sub_left_parts),len(right_parts))==1: 
+                    combined.append(list(zip(sub_left_parts,sub_right_parts)))
+                else:
+                    digits_start_end = [int(re.findall(r'\d+', sub_left_parts[0])[0]),int(re.findall(r'\d+', sub_left_parts[-1])[0])]
+                    non_digits = ''.join(set(''.join(re.findall(r'\D+', sub_left_parts[0]))))
+                    combined.append([(non_digits+str(x)) for x in range(digits_start_end[0],digits_start_end[-1])])
+    
+    flattened_combined = []
+    for item in combined:
+        if isinstance(item, list):   
+            flattened_combined.extend(item)
+        else:
+            flattened_combined.append(item)
+    print(f'flated combine, {flattened_combined}')
+    return flattened_combined
+
+#%%
 def parse_reference_map_entry(entry):
     """understand reference map and get the mapped_points if key are not in mesa config"""
     if (not entry) or (not isinstance(entry,str)):
         return []
-    parts = entry.split(',')
-    mapped_points = []
-    for i in parts:
-        if (":" in i):
-            lhs, rhs = [], []
-            subparts = i.split(':')
-            for p in subparts:
-                if '-' in p:
-                    split_parts= p.split('-')  # Split by '-'
-                    lhs.append(split_parts[0])
-                    rhs.append(split_parts[1] if len(split_parts) > 1 else '')  
-                else:
-                    mapped_points.append(p)
-            for l,r in zip(lhs,rhs):
-                    mapped_points.append((l,r))   
-        elif (":" not in i) and ('-' in i):
-            subparts = i.split('-')
-            for p in subparts:
-                mapped_points.append(p)
-                
-        else:
-            mapped_points.append(i)
+
+ 
+    mapped_points = extract_and_combine(entry)
+    print('mapped points',mapped_points)
     return mapped_points
 
 
