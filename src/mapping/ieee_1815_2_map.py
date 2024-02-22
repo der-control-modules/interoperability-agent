@@ -167,6 +167,18 @@ def get_filtered_maps(mesa_map, reference_map):
     return filtered_map, notexist_keys,in_mesa_keys
 
 
+def check_contains_O(mapped_points):
+    for point in mapped_points:
+        # if tuple
+        if isinstance(point, tuple):
+            for item in point:
+                if 'O' in item:
+                    return True
+        # if just elements in list
+        elif 'O' in point:
+            return True
+    return False
+
 
 def merge_keys(data):
     '''merge keys that has same mappoed points'''
@@ -198,7 +210,7 @@ def merge_keys(data):
         else:
             type_str = 'one_to_one'
         
-        write_flag = any('O' in point for point in current_mapped_points)
+        write_flag =  check_contains_O(current_mapped_points)
         
         result[",".join(tuple(similar_keys))] = {
             'mapped_points': current_mapped_points,
