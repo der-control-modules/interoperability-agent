@@ -1,13 +1,10 @@
- 
+#%% 
 import pandas as pd 
 import os
 import re 
+# %%
  
- 
-# get folder 
-
 current_folder = os.getcwd()
- 
  
 # get reference_map
 reference_map = pd.read_excel(os.path.join(current_folder,r'ieee1547_mappings.xlsx'),sheet_name='Sheet1')
@@ -28,11 +25,8 @@ def get_mapped_point_len(mapped_points):
     
     if isinstance(mapped_points,float):
         return 0
-    pairs = re.findall(r'(\w+::\w+)\s*=\s*(\d+)', mapped_points)
-    if pairs:
-        return len(pairs)
     else:
-        return max(len(mapped_points.split(' ')), len(mapped_points.split(',')))
+        return len(mapped_points.split(','))
 
 def determine_writable(mapped_points):
     if isinstance(mapped_points,str):
@@ -46,7 +40,7 @@ def get_maps(reference_map):
     notexist_keys = []
     for ref in reference_map['IEC 61850-7-420']:
         # if key NOT in mesa_map ，check IEEE 1815.2 column
-        mapped_points = reference_map[reference_map['IEC 61850-7-420'].str.contains(ref, na=False)]['IEEE 2030.5'].iloc[0]
+        mapped_points = reference_map[reference_map['IEC 61850-7-420'].str.contains(ref, na=False)]['SunSpec Modbus'].iloc[0]
         if mapped_points:
             point_length = get_mapped_point_len(mapped_points)
             key_length = len(ref.split(','))
