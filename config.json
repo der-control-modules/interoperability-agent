@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "my_bess": {
+	"target_type": "sunspec_modbus",
+	"driver_device_topic": "sunspec"
+    },
+    "your_device": {
+      "target_type": "ieee_1815_2"
+    }
+  }
+}

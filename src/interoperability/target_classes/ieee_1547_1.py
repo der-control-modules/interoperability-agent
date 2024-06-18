@@ -7,7 +7,7 @@ class IEEE_1547_1(InteroperableTarget):
     def __init__(self, **kwargs):
         super(IEEE_1547_1, self).__init__(**kwargs)
 
-    def poll_values(self, point_names: Iterable) -> bool:
+    def get_values(self, point_names: Iterable) -> bool:
         pass
 
     def set_values(self, request_dict: dict[str, any]) -> bool:
