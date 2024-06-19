@@ -2,9 +2,15 @@ import abc
 import importlib
 import logging
 
-from typing import Iterable
+from typing import Dict, Iterable, Union
 
-from volttron.utils import setup_logging
+from importlib.metadata import version
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.utils import setup_logging
+else:
+    # noinspection PyUnresolvedReferences
+    from volttron.platform.agent.utils import setup_logging
+
 
 from .transforms import Transform
 
@@ -32,7 +38,7 @@ class InteroperableTarget:
             for ieee61850_name, v in self.MAPPING.items()
         }
 
-    def get(self, point_names: Iterable[str]) -> dict[str, any] | bool:
+    def get(self, point_names: Iterable[str]) -> Union[Dict[str, any], bool]:
         get_request = {}
         ret_dict = {}
         _log.debug(f'point names is: {point_names}')
@@ -49,7 +55,7 @@ class InteroperableTarget:
         else:
             return False
 
-    def set(self, point_value_dict: dict[str, any]):
+    def set(self, point_value_dict: Dict[str, any]):
         request_dict = {}
         for point, value in point_value_dict.items():
             if self.ieee61850_mapping[point].writable():
@@ -186,7 +192,7 @@ class InteroperableTarget:
         pass
     
     @abc.abstractmethod
-    def set_values(self, request_dict: dict[str, any]) -> bool:
+    def set_values(self, request_dict: Dict[str, any]) -> bool:
         """Set points from the target. Return success bool."""
         pass
     

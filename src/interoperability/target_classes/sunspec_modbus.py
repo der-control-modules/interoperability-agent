@@ -1,6 +1,14 @@
 import logging
 
-from volttron.utils import setup_logging
+from typing import Dict
+
+from importlib.metadata import version
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.utils import setup_logging
+else:
+    # noinspection PyUnresolvedReferences
+    from volttron.platform.agent.utils import setup_logging
+
 
 from interoperability.interoperable_target import InteroperableTarget
 
@@ -13,7 +21,7 @@ class SunSpecModbus(InteroperableTarget):
         super(SunSpecModbus, self).__init__(**kwargs)
         self.topic = driver_device_topic
 
-    def get_values(self, point_names: dict[str, str]) -> bool:
+    def get_values(self, point_names: Dict[str, str]) -> bool:
         # Takes input of dict[sunspec_name, iec_name].
         _log.debug(f'#### In get_values (sunspec_modbus), point_names is:')
         _log.debug(point_names)
@@ -27,7 +35,7 @@ class SunSpecModbus(InteroperableTarget):
             self.target_mapping[point_names[point_name]] = v
         return True
 
-    def set_values(self, request_dict: dict[str, any]) -> bool:
+    def set_values(self, request_dict: Dict[str, any]) -> bool:
         _log.debug(f'#### In set_values (sunspec_modbus), request_dict is:')
         _log.debug(request_dict)
         error_dict = self.parent.vip.rpc.call('platform.driver', 'set_multiple_points', self.topic,

@@ -2,6 +2,7 @@
 pip-wheel-metadata/
 site/
 .venv/
+.test_home/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
