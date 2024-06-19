@@ -1,14 +1,25 @@
 import logging
 import sys
 
-from typing import Iterable
-from volttron.client.vip.agent import Agent
-from volttron.client.vip.agent.subsystems.rpc import RPC
+from typing import Dict, Iterable
+
+from importlib.metadata import version
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.client.vip.agent import Agent
+    from volttron.client.vip.agent.subsystems.rpc import RPC
+    from volttron.utils import setup_logging, vip_main
+else:
+    # noinspection PyUnresolvedReferences
+    from volttron.platform.vip.agent import Agent, RPC
+    # noinspection PyUnresolvedReferences
+    from volttron.platform.agent.utils import setup_logging, vip_main
 
 from .interoperable_target import InteroperableTarget
 
 setup_logging()
 _log = logging.getLogger(__name__)
+
+__version__ = 0.1
 
 
 class InteroperabilityAgent(Agent):
@@ -42,7 +53,7 @@ class InteroperabilityAgent(Agent):
         return self.targets[target].get(point_names)
 
     @RPC.export
-    def set(self, target: str, point_value_dict: dict[str, any]):
+    def set(self, target: str, point_value_dict: Dict[str, any]):
         _log.debug(f'####### IN SET, TARGET IS: {target}, POINT_VALUE_DICT IS: {point_value_dict}')
         return self.targets[target].set(point_value_dict)
 

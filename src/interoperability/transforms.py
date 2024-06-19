@@ -3,7 +3,13 @@ import logging
 
 from typing import Sequence
 
-from volttron.utils import setup_logging
+from importlib.metadata import version
+if int(version('volttron').split('.')[0]) >= 10:
+    from volttron.utils import setup_logging
+else:
+    # noinspection PyUnresolvedReferences
+    from volttron.platform.agent.utils import setup_logging
+
 
 setup_logging()
 _log = logging.getLogger(__name__)
